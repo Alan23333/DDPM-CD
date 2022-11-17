@@ -2,7 +2,7 @@
     "name": "ddpm-RS-CDHead-LEVIR",
     "phase": "train", // train or test
     "gpu_ids": [
-        0
+        1
     ],
 
     "path": { //set the paths
@@ -11,7 +11,7 @@
         "results": "results",
         "checkpoint": "checkpoint",
         //"resume_state": null
-        "resume_state": "experiments/ddpm-RS-Unet_220428_183313/checkpoint/I190000_E97" //"experiments/ddpm-RS-Unet_220425_062858/checkpoint/I60000_E8" //set path to pre-trained diffusion model
+        "resume_state": "/data/fangchuangjie/ddpm-cd/experiments/ddpm-RS-Unet/checkpoint/diffusion" //"experiments/ddpm-RS-Unet_220425_062858/checkpoint/I60000_E8" //set path to pre-trained diffusion model
     },
 
     "path_cd": { //set the path 
@@ -19,7 +19,7 @@
         "tb_logger": "tb_logger",
         "results": "results",
         "checkpoint": "checkpoint",
-        "resume_state": null
+        "resume_state": "/data/fangchuangjie/ddpm-cd/experiments/ddpm-RS-CDHead-LEVIR/checkpoint/best_cd_model"
         //"resume_state": "experiments/ddpm-RS-CDHead_220502_082603/checkpoint/best_cd_model" //t=50
         //"resume_state": "experiments/ddpm-RS-CDHead_220502_083019/checkpoint/best_cd_model" //t=100
     },
@@ -27,7 +27,7 @@
     "datasets": {
         "train": {
             "name": "LEVIR-CD-256",
-            "dataroot": "dataset/LEVIR-CD256/",
+            "dataroot": "/data/fangchuangjie/ddpm-cd/dataset/LEVIR-CD-256/",
             "resolution": 256, // high resolution
             "batch_size": 8,
             "num_workers": 8,
@@ -36,7 +36,7 @@
         },
         "val": {
             "name": "LEVIR-CD-256",
-            "dataroot": "dataset/LEVIR-CD256/",
+            "dataroot": "/data/fangchuangjie/ddpm-cd/dataset/LEVIR-CD-256/",
             "resolution": 256, // high resolution
             "batch_size": 4,
             "num_workers": 8,
@@ -45,7 +45,7 @@
         },
         "test": {
             "name": "LEVIR-CD-256",
-            "dataroot": "dataset/LEVIR-CD256/",
+            "dataroot": "/data/fangchuangjie/ddpm-cd/dataset/LEVIR-CD-256/",
             "resolution": 256, // high resolution
             "batch_size": 4,
             "num_workers": 8,

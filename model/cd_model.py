@@ -47,7 +47,7 @@ class CD(BaseModel):
             self.log_dict = OrderedDict()
 
         self.load_network()
-        self.print_network()
+        # self.print_network()
 
         self.running_metric = ConfuseMatrixMeter(n_class=opt['model_cd']['out_channels'])
         self.len_train_dataloader = opt["len_train_dataloader"]

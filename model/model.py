@@ -48,7 +48,7 @@ class DDPM(BaseModel):
 
             self.log_dict = OrderedDict()
         self.load_network()
-        self.print_network()
+        # self.print_network()
 
     def feed_data(self, data):
         self.data = self.set_device(data)

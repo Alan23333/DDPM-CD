@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="e1d22a2f-9c61-42df-9c3e-b8a8d0db311a" name="DDPM-CD">
+        <fileTransfer accessType="SFTP" host="10.12.49.188" port="60606" sshConfigId="6122c918-24cf-4296-a10c-9850854362ee" sshConfig="star@10.12.49.188:60606 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

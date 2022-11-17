@@ -18,7 +18,7 @@ if __name__ == "__main__":
                         help='JSON file for configuration')
     parser.add_argument('-p', '--phase', type=str, choices=['train', 'test'],
                         help='Run either train(training + validation) or testing', default='train')
-    parser.add_argument('-gpu', '--gpu_ids', type=str, default=None)
+    parser.add_argument('-gpu', '--gpu_ids', type=str, default='1')
     parser.add_argument('-debug', '-d', action='store_true')
     parser.add_argument('-enable_wandb', action='store_true')
     parser.add_argument('-log_eval', action='store_true')
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     Logger.setup_logger('test', opt['path']['log'], 'test', level=logging.INFO)
     logger = logging.getLogger('base')
     logger.info(Logger.dict2str(opt))
-    tb_logger = SummaryWriter(log_dir=opt['path']['tb_logger'])
+    tb_logger = SummaryWriter(logdir=opt['path']['tb_logger'])
 
     # Initialize WandbLogger
     if opt['enable_wandb']:
