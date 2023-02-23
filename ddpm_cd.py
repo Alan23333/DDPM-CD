@@ -9,10 +9,11 @@ from core.wandb_logger import WandbLogger
 from tensorboardX import SummaryWriter
 import os
 import numpy as np
-from model.cd_modules.cd_head import cd_head 
+from model.cd_modules.cd_head import cd_head
 from misc.print_diffuse_feats import print_feats
 
 if __name__ == "__main__":
+    # ArgumentParser() 新建一个ArgumentParser对象，来获取参数  parser(解析器)  ArgumentParser(参数解析器) add_argument(添加参数)
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', type=str, default='config/ddpm_cd.json',
                         help='JSON file for configuration')
@@ -24,23 +25,40 @@ if __name__ == "__main__":
     parser.add_argument('-log_eval', action='store_true')
 
     # parse configs
+    # parser.parse_args() 解析并获得命令行传来的参数
     args = parser.parse_args()
+    # print(args) Namespace(config='config/levir_test.json', debug=False, enable_wandb=False, gpu_ids='1', log_eval=True, phase='test')
+    # print(type(args)) <class 'argparse.Namespace'>
+    # print(vars(args)) {'config': 'config/levir_test.json', 'phase': 'test', 'gpu_ids': '1', 'debug': False, 'enable_wandb': False, 'log_eval': True}
     opt = Logger.parse(args)
+
+    # print(opt) 参数的合集
+    # print(type(opt)) <class 'collections.OrderedDict'>
+
     # Convert to NoneDict, which return None for missing key.
-    opt = Logger.dict_to_nonedict(opt)
+    opt = Logger.dict_to_nonedict(opt) #设置完了所有参数
 
     # logging
+    # 设置为True，说明设置为使用非确定性算法：
     torch.backends.cudnn.enabled = True
+    # 设置这个 flag 可以让内置的 cuDNN 的 auto-tuner 自动寻找最适合当前配置的高效算法，来达到优化运行效率的问题。
     torch.backends.cudnn.benchmark = True
 
+    # 初始化train.log
     Logger.setup_logger(None, opt['path']['log'],
                         'train', level=logging.INFO, screen=True)
+    # 初始化test.log
     Logger.setup_logger('test', opt['path']['log'], 'test', level=logging.INFO)
+
+    # 因为在创建train.log的logger对象时没有指定名字,所以train.log为root logger
     logger = logging.getLogger('base')
+    # 控制log格式,打印log进入train.log和screen
     logger.info(Logger.dict2str(opt))
+    # 将条目直接写入 log_dir 中的事件文件以供 TensorBoard 使用。不知道什么意思
     tb_logger = SummaryWriter(logdir=opt['path']['tb_logger'])
 
-    # Initialize WandbLogger
+
+    # Initialize WandbLogger 初始化 WandbLogger
     if opt['enable_wandb']:
         import wandb
         print("Initializing wandblog.")
@@ -59,6 +77,7 @@ if __name__ == "__main__":
         wandb_logger = None
 
     # Loading change-detction datasets.
+    # 载入数据集
     for phase, dataset_opt in opt['datasets'].items():
         if phase == 'train' and args.phase != 'test':
             print("Creating [train] change-detection dataloader.")
@@ -77,28 +96,38 @@ if __name__ == "__main__":
         elif phase == 'test' and args.phase == 'test':
             print("Creating [test] change-detection dataloader.")
             print(phase)
+            # 设置加载的图片
             test_set   = Data.create_cd_dataset(dataset_opt, phase)
+            # 设置torch.utils.data.DataLoader
             test_loader= Data.create_cd_dataloader(
                 test_set, dataset_opt, phase)
             opt['len_test_dataloader'] = len(test_loader)
     
     logger.info('Initial Dataset Finished')
 
+
+
+
     # Loading diffusion model
+    # 载入diffusion模型
     diffusion = Model.create_model(opt)
     logger.info('Initial Diffusion Model Finished')
 
     # Set noise schedule for the diffusion model
+    # 设置diffusion的噪声
     diffusion.set_new_noise_schedule(
         opt['model']['beta_schedule'][opt['phase']], schedule_phase=opt['phase'])
     
     # Creating change-detection model
+    # 创建CD模型
     change_detection = Model.create_CD_model(opt)
+
+    #print("11111111111111",change_detection,"22222222222222222222222")
     
     #################
     # Training loop #
     #################
-    n_epoch = opt['train']['n_epoch']
+    n_epoch = opt['train']['n_epoch']  # n_epoch=120
     best_mF1 = 0.0
     start_epoch = 0
     if opt['phase'] == 'train':
@@ -142,7 +171,7 @@ if __name__ == "__main__":
                 change_detection._collect_running_batch_states()
 
                 # log running batch status
-                if current_step % opt['train']['train_print_freq'] == 0:
+                if current_step % 4 == 0:
                     # message
                     logs = change_detection.get_current_log()
                     message = '[Training CD]. epoch: [%d/%d]. Itter: [%d/%d], CD_loss: %.5f, running_mf1: %.5f\n' %\
@@ -316,20 +345,29 @@ if __name__ == "__main__":
                 wandb_logger.log_metrics({'epoch': current_epoch-1})
                 
         logger.info('End of training.')
-    else:
+    else: # test过程
         logger.info('Begin Model Evaluation (testing).')
         test_result_path = '{}/test/'.format(opt['path']
                                                  ['results'])
+        # 在结果的result文件夹内新建装结果文件的test文件夹
         os.makedirs(test_result_path, exist_ok=True)
-        logger_test = logging.getLogger('test')  # test logger
+        # 得到 test logger
+        logger_test = logging.getLogger('test')
+
+        # -----------------清除缓存，使一个东西变为未初始化--------------------
         change_detection._clear_cache()
+
+        # enumerate 将一个可遍历的数据对象组合为一个索引序列
         for current_step, test_data in enumerate(test_loader):
             # Feed data to diffusion model
+            # 投入数据集------------------------------------------
             diffusion.feed_data(test_data)
             f_A=[]
             f_B=[]
             for t in opt['model_cd']['t']:
-                fe_A_t, fd_A_t, fe_B_t, fd_B_t = diffusion.get_feats(t=t) #np.random.randint(low=2, high=8)
+                # 获取图片的特征表示
+                # np.random.randint(low=2, high=8)-----------
+                fe_A_t, fd_A_t, fe_B_t, fd_B_t = diffusion.get_feats(t=t)
                 if opt['model_cd']['feat_type'] == "dec":
                     f_A.append(fd_A_t)
                     f_B.append(fd_B_t)
@@ -339,10 +377,11 @@ if __name__ == "__main__":
                     f_B.append(fe_B_t)
                     del fd_A_t, fd_B_t
 
+            # -----------把特征给CD模型
             # Feed data to CD model
             change_detection.feed_data(f_A, f_B, test_data)
-            change_detection.test()
-            change_detection._collect_running_batch_states()
+            change_detection.test() # ----------对数据进行测试
+            change_detection._collect_running_batch_states() # ---------当前运行批次的收集状态
 
             # Logs
             logs        = change_detection.get_current_log()
@@ -350,7 +389,7 @@ if __name__ == "__main__":
                                     (current_step, len(test_loader), logs['running_acc'])
             logger_test.info(message)
 
-            # Vissuals
+            # Vissuals 获得变化检测图片并保存
             visuals = change_detection.get_current_visuals()
             img_mode = 'single'
             if img_mode == 'single':
